@@ -1,36 +1,17 @@
 from dataclasses import asdict, dataclass
-from random import SystemRandom
-from typing import Callable, Protocol, TypeAlias, Unpack
+from typing import Callable, Protocol, TypeAlias
 
 import pytest
-from mimesis.locales import Locale
 from mimesis.schema import Field
 
 from server.apps.identity.models import User
 
-
-@pytest.fixture()
-def faker_seed() -> int:
-    """Returns seed for generating fake data."""
-    cryptogen = SystemRandom()
-    return cryptogen.randrange(100)
-
-
 OptionalFields: TypeAlias = dict[str, str] | None
 
 
-@dataclass
-class AsDictMixin:
-    """Mixin to convert dataclass to dictionary."""
-
-    def as_dict(self) -> dict[str, str]:
-        """Represents user data in a dictionary form."""
-        return asdict(self)
-
-
 @dataclass(slots=True)
-class UserData(AsDictMixin):
-    """Stores user essential data."""
+class UserData:
+    """User essential data model."""
 
     email: str
     first_name: str
@@ -39,10 +20,14 @@ class UserData(AsDictMixin):
     address: str
     phone: str
 
+    def as_dict(self) -> dict[str, str]:
+        """Represents user data in a dictionary form."""
+        return asdict(self)
+
 
 @dataclass(slots=True)
 class RegistrationData(UserData):
-    """Stores user essential data with passwords for registration."""
+    """User essential data with passwords for registration model."""
 
     password1: str
     password2: str
@@ -57,11 +42,10 @@ class RegistrationDataFactory(Protocol):
 
 
 @pytest.fixture()
-def registration_data_factory(faker_seed: int) -> RegistrationDataFactory:
+def registration_data_factory(fake: Field) -> RegistrationDataFactory:
     """Returns registration data with fake data."""
 
     def factory(**fields: OptionalFields) -> RegistrationData:
-        fake = Field(locale=Locale.RU, seed=faker_seed)
         password = fake('password')
         email = str(fields.get('email', fake('email')))
 
