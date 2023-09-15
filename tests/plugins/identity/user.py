@@ -1,6 +1,6 @@
 from dataclasses import asdict, dataclass
 from random import SystemRandom
-from typing import Callable, Protocol, TypeAlias
+from typing import Callable, Protocol, TypeAlias, Unpack
 
 import pytest
 from mimesis.locales import Locale
@@ -9,8 +9,27 @@ from mimesis.schema import Field
 from server.apps.identity.models import User
 
 
+@pytest.fixture()
+def faker_seed() -> int:
+    """Returns seed for generating fake data."""
+    cryptogen = SystemRandom()
+    return cryptogen.randrange(100)
+
+
+OptionalFields: TypeAlias = dict[str, str] | None
+
+
+@dataclass
+class AsDictMixin:
+    """Mixin to convert dataclass to dictionary."""
+
+    def as_dict(self) -> dict[str, str]:
+        """Represents user data in a dictionary form."""
+        return asdict(self)
+
+
 @dataclass(slots=True)
-class UserData:
+class UserData(AsDictMixin):
     """Stores user essential data."""
 
     email: str
@@ -28,10 +47,6 @@ class RegistrationData(UserData):
     password1: str
     password2: str
 
-    def as_dict(self) -> dict[str, str]:
-        """Represents registration data in a dictionary form."""
-        return asdict(self)
-
 
 class RegistrationDataFactory(Protocol):
     """Registration data factory protocol."""
@@ -42,21 +57,13 @@ class RegistrationDataFactory(Protocol):
 
 
 @pytest.fixture()
-def faker_seed() -> int:
-    """Returns seed for generating fake data."""
-    cryptogen = SystemRandom()
-    return cryptogen.randrange(100)
-
-
-@pytest.fixture()
 def registration_data_factory(faker_seed: int) -> RegistrationDataFactory:
     """Returns registration data with fake data."""
 
-    def factory(email: str | None = None) -> RegistrationData:
+    def factory(**fields: OptionalFields) -> RegistrationData:
         fake = Field(locale=Locale.RU, seed=faker_seed)
         password = fake('password')
-        if email is None:
-            email = fake('email')
+        email = str(fields.get('email', fake('email')))
 
         return RegistrationData(
             email=email,
@@ -99,7 +106,10 @@ UserAssertion: TypeAlias = Callable[[str, UserData], None]
 def assert_correct_user() -> UserAssertion:
     """Asserts that user with given email exists and has expected data."""
 
-    def factory(email: str, expected: UserData) -> None:
+    def factory(
+        email: str,
+        expected: UserData,
+    ) -> None:
         user = User.objects.get(email=email)
         assert user.is_active
         assert not user.is_superuser
@@ -109,3 +119,10 @@ def assert_correct_user() -> UserAssertion:
             assert getattr(user, field_name) == field_value
 
     return factory
+
+
+@pytest.mark.django_db()
+@pytest.fixture()
+def created_new_user(user_data: UserData) -> User:
+    """Creates a new user in the database."""
+    return User.objects.create(**asdict(user_data))
