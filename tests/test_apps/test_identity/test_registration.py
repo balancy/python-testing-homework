@@ -17,14 +17,14 @@ def test_valid_registration(
     assert_correct_user: 'UserAssertion',
 ) -> None:
     """Tests that registration works with correct user data."""
-
     response = client.post(
         reverse('identity:registration'),
-        data=registration_data,
+        data=registration_data.as_dict(),
     )
 
     assert response.status_code == HTTPStatus.FOUND
     assert response.get('Location') == reverse('identity:login')
     assert_correct_user(
-        registration_data['email'], user_data  # type: ignore[arg-type]
+        registration_data.email,
+        user_data,
     )
