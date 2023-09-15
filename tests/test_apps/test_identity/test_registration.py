@@ -5,8 +5,15 @@ import pytest
 from django.test import Client
 from django.urls import reverse
 
+from server.apps.identity.models import User
+
 if TYPE_CHECKING:
-    from plugins.identity.user import RegistrationData, UserAssertion, UserData
+    from plugins.identity.user import (
+        RegistrationData,
+        RegistrationDataFactory,
+        UserAssertion,
+        UserData,
+    )
 
 
 @pytest.mark.django_db()
@@ -28,3 +35,20 @@ def test_valid_registration(
         registration_data.email,
         user_data,
     )
+
+
+@pytest.mark.django_db()
+def test_registration_missing_email_field(
+    client: Client,
+    registration_data_factory: 'RegistrationDataFactory',
+) -> None:
+    """Tests that registration works with correct user data."""
+    post_data = registration_data_factory(email='').as_dict()
+
+    response = client.post(
+        reverse('identity:registration'),
+        data=post_data,
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert not User.objects.filter(email=post_data['email'])

@@ -1,6 +1,6 @@
 from dataclasses import asdict, dataclass
 from random import SystemRandom
-from typing import Callable, TypeAlias
+from typing import Callable, Protocol, TypeAlias
 
 import pytest
 from mimesis.locales import Locale
@@ -9,7 +9,7 @@ from mimesis.schema import Field
 from server.apps.identity.models import User
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class UserData:
     """Stores user essential data."""
 
@@ -21,7 +21,7 @@ class UserData:
     phone: str
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class RegistrationData(UserData):
     """Stores user essential data with passwords for registration."""
 
@@ -33,6 +33,14 @@ class RegistrationData(UserData):
         return asdict(self)
 
 
+class RegistrationDataFactory(Protocol):
+    """Registration data factory protocol."""
+
+    def __call__(self) -> RegistrationData:
+        """Factory must implement being called."""
+        ...
+
+
 @pytest.fixture()
 def faker_seed() -> int:
     """Returns seed for generating fake data."""
@@ -41,20 +49,35 @@ def faker_seed() -> int:
 
 
 @pytest.fixture()
-def registration_data(faker_seed: int) -> RegistrationData:
+def registration_data_factory(faker_seed: int) -> RegistrationDataFactory:
     """Returns registration data with fake data."""
-    fake = Field(locale=Locale.RU, seed=faker_seed)
-    password = fake('password')
-    return RegistrationData(
-        email=fake('email'),
-        first_name=fake('first_name'),
-        last_name=fake('last_name'),
-        phone=fake('telephone'),
-        job_title=fake('occupation'),
-        address=fake('city'),
-        password1=password,
-        password2=password,
-    )
+
+    def factory(email: str | None = None) -> RegistrationData:
+        fake = Field(locale=Locale.RU, seed=faker_seed)
+        password = fake('password')
+        if email is None:
+            email = fake('email')
+
+        return RegistrationData(
+            email=email,
+            first_name=fake('first_name'),
+            last_name=fake('last_name'),
+            phone=fake('telephone'),
+            job_title=fake('occupation'),
+            address=fake('city'),
+            password1=password,
+            password2=password,
+        )
+
+    return factory
+
+
+@pytest.fixture()
+def registration_data(
+    registration_data_factory: RegistrationDataFactory,
+) -> RegistrationData:
+    """Returns registration data with fake data."""
+    return registration_data_factory()
 
 
 @pytest.fixture()
