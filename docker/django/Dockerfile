@@ -40,14 +40,14 @@ SHELL ["/bin/bash", "-eo", "pipefail", "-c"]
 # hadolint ignore=DL3008
 RUN apt-get update && apt-get upgrade -y \
   && apt-get install --no-install-recommends -y \
-    bash \
-    brotli \
-    build-essential \
-    curl \
-    gettext \
-    git \
-    libpq-dev \
-    wait-for-it \
+  bash \
+  brotli \
+  build-essential \
+  curl \
+  gettext \
+  git \
+  libpq-dev \
+  wait-for-it \
   # Installing `tini` utility:
   # https://github.com/krallin/tini
   # Get architecture to download appropriate tini release:
@@ -83,8 +83,9 @@ RUN --mount=type=cache,target="$POETRY_CACHE_DIR" \
   # Install deps:
   && poetry run pip install -U pip \
   && poetry install \
-    $(if [ "$DJANGO_ENV" = 'production' ]; then echo '--only main'; fi) \
-    --no-interaction --no-ansi
+  $(if [ "$DJANGO_ENV" = 'production' ]; then echo '--only main'; \
+  else echo '--with dev'; fi) \
+  --no-interaction --no-ansi
 
 # This is a special case. We need to run this script as an entry point:
 COPY ./docker/django/entrypoint.sh /docker-entrypoint.sh
