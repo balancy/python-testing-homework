@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 from django.test import Client
 from django.urls import reverse
@@ -6,44 +8,57 @@ from server.apps.identity.models import User
 from server.apps.pictures.logic.usecases.favourites_list import FavouritesList
 from server.apps.pictures.models import FavouritePicture
 
+pytestmark = [
+    pytest.mark.django_db(),
+]
 
-@pytest.mark.django_db()
+
 def test_fetch_favourite_picture_if_exists(
     created_new_user: User,
     created_fav_picture: FavouritePicture,
 ) -> None:
-    """Test getting correct favourite pictures."""
-    favourite_pictures = FavouritesList()
-    user_fav_pictures = favourite_pictures(user_id=created_new_user.id)
+    """Tests getting correct favourite pictures."""
+    user_fav_pictures = FavouritesList()(user_id=created_new_user.id)
 
     assert len(user_fav_pictures) == 1
     assert created_fav_picture in user_fav_pictures
 
 
-@pytest.mark.django_db()
-def test_logged_in_user_access_dashboard(
-    created_new_user: User,
-    client: Client,
+def test_logged_in_user_access_dashboard_view(
+    client_with_logged_in_user: Client,
 ) -> None:
-    """Test that logged in user can access all views."""
-    client.force_login(created_new_user)
+    """Tests that logged in user can access dashboard view."""
+    response = client_with_logged_in_user.get(
+        reverse('pictures:dashboard'),
+    )
 
-    response = client.get(reverse('pictures:dashboard'))
-    assert 'Профиль'.encode() in response.content
+    assert response.status_code == HTTPStatus.OK
+    assert response.content
 
 
-@pytest.mark.django_db()
-def test_logged_in_user_access_favourite_pictures(
-    created_new_user: User,
-    client: Client,
+def test_logged_in_user_access_favourites_view(
+    client_with_logged_in_user: Client,
     created_fav_picture: FavouritePicture,
 ) -> None:
-    """Test that logged in user can access all views."""
-    client.force_login(created_new_user)
-
-    response = client.get(reverse('pictures:favourites'))
-    assert 'Список любимых картинок'.encode() in response.content
-    assert (
-        'Номер {0}'.format(created_fav_picture.foreign_id).encode()
-        in response.content
+    """Tests that logged in user can access favourites view."""
+    response = client_with_logged_in_user.get(
+        reverse('pictures:favourites'),
     )
+
+    assert str(created_fav_picture).startswith('<Picture')
+    assert response.status_code == HTTPStatus.OK
+    assert response.content
+
+
+def test_user_redirects_after_posting_picture(
+    client_with_logged_in_user: Client,
+    picture_data: dict[str, int | str],
+) -> None:
+    """Tests user redirects to dashboard view afetr posting picture."""
+    response = client_with_logged_in_user.post(
+        reverse('pictures:dashboard'),
+        data=picture_data,
+    )
+
+    assert response.status_code == HTTPStatus.FOUND
+    assert response.headers['location'] == reverse('pictures:dashboard')

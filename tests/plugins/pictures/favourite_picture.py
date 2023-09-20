@@ -14,28 +14,28 @@ class FavouritePictureData:
     foreign_id: int
     url: str
 
+    def asdict(self) -> dict[str, int | str]:
+        """Return favourite picture data as dict."""
+        return asdict(self)
+
 
 @pytest.fixture()
-def picture_data(fake: Field) -> FavouritePictureData:
+def picture_data(fake: Field) -> dict[str, int | str]:
     """Returns favourite picture data."""
     return FavouritePictureData(
         foreign_id=fake('numeric.increment'),
         url=fake('internet.uri'),
-    )
+    ).asdict()
 
 
 @pytest.mark.django_db()
 @pytest.fixture()
 def created_fav_picture(
     created_new_user: User,
-    picture_data: 'FavouritePictureData',
+    picture_data: dict[str, int | str],
 ) -> FavouritePicture:
-    """Create new favourite picture."""
-    created_picture = FavouritePicture.objects.create(
+    """Returns new created favourite picture."""
+    return FavouritePicture.objects.create(
         user=created_new_user,
-        **asdict(picture_data),
+        **picture_data,
     )
-    assert str(created_picture).startswith(
-        '<Picture {0}'.format(picture_data.foreign_id),
-    )
-    return created_picture

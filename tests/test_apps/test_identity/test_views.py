@@ -15,7 +15,7 @@ pytestmark = [
         ('client', reverse('identity:login')),
     ],
 )
-def test_login(
+def test_views(
     client_fixture: str,
     view: str,
     request: pytest.FixtureRequest,
