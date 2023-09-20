@@ -14,10 +14,6 @@ class FavouritePictureData:
     foreign_id: int
     url: str
 
-    def as_dict(self) -> dict[str, str | int]:
-        """Return as a dictionary."""
-        return asdict(self)
-
 
 @pytest.fixture()
 def picture_data(fake: Field) -> FavouritePictureData:
@@ -37,7 +33,7 @@ def created_fav_picture(
     """Create new favourite picture."""
     created_picture = FavouritePicture.objects.create(
         user=created_new_user,
-        **picture_data.as_dict(),
+        **asdict(picture_data),
     )
     assert str(created_picture).startswith(
         '<Picture {0}'.format(picture_data.foreign_id),

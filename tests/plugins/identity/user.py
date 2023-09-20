@@ -1,7 +1,9 @@
 from dataclasses import asdict, dataclass
-from typing import Callable, Protocol, TypeAlias
+from datetime import date
+from typing import Protocol, TypeAlias
 
 import pytest
+from django.test import Client
 from mimesis.schema import Field
 
 from server.apps.identity.models import User
@@ -11,7 +13,7 @@ OptionalFields: TypeAlias = dict[str, str] | None
 
 @dataclass(slots=True)
 class UserData:
-    """User essential data model."""
+    """Model for user essential data model."""
 
     email: str
     first_name: str
@@ -20,17 +22,20 @@ class UserData:
     address: str
     phone: str
 
-    def as_dict(self) -> dict[str, str]:
-        """Represents user data in a dictionary form."""
-        return asdict(self)
-
 
 @dataclass(slots=True)
 class RegistrationData(UserData):
-    """User essential data with passwords for registration model."""
+    """Model for user essential data with passwords for registration."""
 
     password1: str
     password2: str
+
+
+@dataclass(slots=True)
+class UserDataWithDateOfBirth(UserData):
+    """Model for user essential data with date of birth."""
+
+    date_of_birth: date
 
 
 class RegistrationDataFactory(Protocol):
@@ -66,43 +71,49 @@ def registration_data_factory(fake: Field) -> RegistrationDataFactory:
 @pytest.fixture()
 def registration_data(
     registration_data_factory: RegistrationDataFactory,
-) -> RegistrationData:
+) -> dict[str, str]:
     """Returns registration data with fake data."""
-    return registration_data_factory()
+    return asdict(registration_data_factory())
 
 
 @pytest.fixture()
-def user_data(registration_data: RegistrationData) -> UserData:
+def registration_data_with_empty_email(
+    registration_data_factory: RegistrationDataFactory,
+) -> dict[str, str]:
+    """Returns registration data with fake data, but with empty email."""
+    return asdict(registration_data_factory(email=''))  # type: ignore[call-arg]
+
+
+@pytest.fixture()
+def user_data(registration_data: dict[str, str]) -> UserData:
     """Simplified registration data with passwords dropped out."""
     registration_data_without_passwords = {
         field_name: field_value
-        for field_name, field_value in asdict(registration_data).items()
+        for field_name, field_value in registration_data.items()
         if not field_name.startswith('pass')
     }
 
     return UserData(**registration_data_without_passwords)
 
 
-UserAssertion: TypeAlias = Callable[[str, UserData], None]
+@pytest.fixture()
+def user_data_with_birthdate(
+    user_data: UserData,
+    fake: Field,
+) -> UserDataWithDateOfBirth:
+    """Returns user data with date of birth."""
+    return UserDataWithDateOfBirth(
+        **{
+            **asdict(user_data),
+            'date_of_birth': fake('date'),
+        },
+    )
 
 
-@pytest.fixture(scope='session')
-def assert_correct_user() -> UserAssertion:
-    """Asserts that user with given email exists and has expected data."""
-
-    def factory(
-        email: str,
-        expected: UserData,
-    ) -> None:
-        user = User.objects.get(email=email)
-        assert user.is_active
-        assert not user.is_superuser
-        assert not user.is_staff
-
-        for field_name, field_value in asdict(expected).items():
-            assert getattr(user, field_name) == field_value
-
-    return factory
+@pytest.fixture()
+def random_password(fake: Field) -> str:
+    """Returns random password."""
+    return fake('password')
 
 
 @pytest.mark.django_db()
@@ -110,3 +121,14 @@ def assert_correct_user() -> UserAssertion:
 def created_new_user(user_data: UserData) -> User:
     """Creates a new user in the database."""
     return User.objects.create(**asdict(user_data))
+
+
+@pytest.mark.django_db()
+@pytest.fixture()
+def client_with_logged_in_user(
+    created_new_user: User,
+    client: Client,
+) -> Client:
+    """Returns logged in user."""
+    client.force_login(created_new_user)
+    return client

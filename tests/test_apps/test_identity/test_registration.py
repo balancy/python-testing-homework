@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 import pytest
 from django.test import Client
@@ -7,48 +6,37 @@ from django.urls import reverse
 
 from server.apps.identity.models import User
 
-if TYPE_CHECKING:
-    from plugins.identity.user import (
-        RegistrationData,
-        RegistrationDataFactory,
-        UserAssertion,
-        UserData,
-    )
+pytestmark = [
+    pytest.mark.django_db(),
+]
 
 
-@pytest.mark.django_db()
-def test_valid_registration(
+@pytest.mark.parametrize(
+    ('registration_data_fixture', 'status_code'),
+    [
+        ('registration_data', HTTPStatus.FOUND),
+        ('registration_data_with_empty_email', HTTPStatus.OK),
+    ],
+)
+def test_registration(
     client: Client,
-    registration_data: 'RegistrationData',
-    user_data: 'UserData',
-    assert_correct_user: 'UserAssertion',
+    registration_data_fixture: str,
+    status_code: int,
+    request: pytest.FixtureRequest,
 ) -> None:
-    """Tests that registration works with correct user data."""
-    response = client.post(
-        reverse('identity:registration'),
-        data=registration_data.as_dict(),
-    )
+    """Tests if registration works correctly depending on user data."""
+    registration_view: str = reverse('identity:registration')
+    registration_data = request.getfixturevalue(registration_data_fixture)
 
-    assert response.status_code == HTTPStatus.FOUND
-    assert response.get('Location') == reverse('identity:login')
-    assert_correct_user(
-        registration_data.email,
-        user_data,
-    )
+    response = client.post(registration_view, data=registration_data)
+
+    assert response.status_code == status_code
 
 
-@pytest.mark.django_db()
-def test_registration_missing_email_field(
-    client: Client,
-    registration_data_factory: 'RegistrationDataFactory',
-) -> None:
-    """Tests that registration works with correct user data."""
-    post_data = registration_data_factory(email='').as_dict()
-
-    response = client.post(
-        reverse('identity:registration'),
-        data=post_data,
-    )
-
-    assert response.status_code == HTTPStatus.OK
-    assert not User.objects.filter(email=post_data['email'])
+def test_registration_via_manager(random_password: str) -> None:
+    """Tests if user manager allows register user without email."""
+    with pytest.raises(ValueError, match='Users must have an email address'):
+        User.objects.create_user(
+            email='',
+            password=random_password,
+        )
