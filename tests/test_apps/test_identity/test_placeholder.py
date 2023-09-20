@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import httpretty
 
-from server.apps.identity.intrastructure.services.placeholder import (
+from server.apps.identity.infrastructure.services.placeholder import (
     LeadCreate,
     UserResponse,
 )

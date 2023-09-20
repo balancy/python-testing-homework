@@ -1,7 +1,7 @@
 import pytest
 
 from server.apps.identity.models import User
-from server.apps.pictures.intrastructure.django.forms import FavouritesForm
+from server.apps.pictures.infrastructure.django.forms import FavouritesForm
 
 
 @pytest.mark.django_db()
