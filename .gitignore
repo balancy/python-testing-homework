@@ -244,3 +244,6 @@ artifacts/
 
 # ipython:
 .ipython/
+
+# homework
+.bash_history
