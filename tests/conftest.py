@@ -10,7 +10,10 @@ pytest_plugins = [
     # Should be the first custom one:
     'plugins.django_settings',
     # TODO: add your own plugins here!
+    'plugins.custom_types',
     'plugins.common',
-    'plugins.identity.user',
+    'plugins.identity.registration_data',
+    'plugins.identity.created_user',
+    'plugins.identity.external_api',
     'plugins.pictures.favourite_picture',
 ]

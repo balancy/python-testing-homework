@@ -11,20 +11,20 @@ pytestmark = [
 
 
 @pytest.fixture()
-def get_update_view(client_with_logged_in_user: Client) -> HttpResponse:
+def get_update_view(client_logged_in: Client) -> HttpResponse:
     """Gets response from user update view."""
-    return client_with_logged_in_user.get(  # type: ignore[return-value]
+    return client_logged_in.get(  # type: ignore[return-value]
         reverse('identity:user_update'),
     )
 
 
 @pytest.fixture()
 def post_update_view(
-    client_with_logged_in_user: Client,
+    client_logged_in: Client,
     registration_data: dict[str, str],
 ) -> HttpResponse:
     """Posts data for update to update view."""
-    return client_with_logged_in_user.post(  # type: ignore[return-value]
+    return client_logged_in.post(  # type: ignore[return-value]
         reverse('identity:user_update'),
         data=registration_data,
     )

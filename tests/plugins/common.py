@@ -15,3 +15,9 @@ def faker_seed() -> int:
 def fake(faker_seed: int) -> Field:
     """Returns mimesis field."""
     return Field(locale=Locale.RU, seed=faker_seed)
+
+
+@pytest.fixture()
+def random_password(fake: Field) -> str:
+    """Returns random password."""
+    return fake('password')

@@ -1,29 +1,26 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator
 
-import httpretty
+import pytest
 
 from server.apps.identity.infrastructure.services.placeholder import (
     LeadCreate,
     UserResponse,
 )
+from server.apps.identity.models import User
 
 if TYPE_CHECKING:
-    from plugins.identity.user import UserDataWithDateOfBirth
+    from plugins.identity.external_api import ExternalApiUserResponse
 
 
-@httpretty.activate(allow_net_connect=False, verbose=True)  # type: ignore[misc]
-def test_lead_create_with_birthdate(
-    user_data_with_birthdate: 'UserDataWithDateOfBirth',
+@pytest.mark.django_db()
+def test_lead_create(
+    user_with_birthdate: User,
+    external_api_mock: Generator['ExternalApiUserResponse', None, None],
+    mocked_uri: str,
 ) -> None:
     """Test LeadCreate object with birthday date."""
-    uri = 'https://example.com'
-    timeout = 5
+    response = LeadCreate(mocked_uri, 5)(user=user_with_birthdate)
 
-    httpretty.register_uri(
-        method=httpretty.POST,
-        uri='{0}/users'.format(uri),
-        body='{"id": 1}',
+    assert response == UserResponse(
+        **external_api_mock,  # type: ignore[arg-type]
     )
-    response = LeadCreate(uri, timeout)(user=user_data_with_birthdate)
-
-    assert response == UserResponse(id=1)

@@ -11,7 +11,7 @@ pytestmark = [
 @pytest.mark.parametrize(
     ('client_fixture', 'view'),
     [
-        ('client_with_logged_in_user', reverse('index')),
+        ('client_logged_in', reverse('index')),
         ('client', reverse('identity:login')),
     ],
 )

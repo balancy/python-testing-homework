@@ -25,10 +25,10 @@ def test_fetch_favourite_picture_if_exists(
 
 
 def test_logged_in_user_access_dashboard_view(
-    client_with_logged_in_user: Client,
+    client_logged_in: Client,
 ) -> None:
     """Tests that logged in user can access dashboard view."""
-    response = client_with_logged_in_user.get(
+    response = client_logged_in.get(
         reverse('pictures:dashboard'),
     )
 
@@ -37,11 +37,11 @@ def test_logged_in_user_access_dashboard_view(
 
 
 def test_logged_in_user_access_favourites_view(
-    client_with_logged_in_user: Client,
+    client_logged_in: Client,
     created_fav_picture: FavouritePicture,
 ) -> None:
     """Tests that logged in user can access favourites view."""
-    response = client_with_logged_in_user.get(
+    response = client_logged_in.get(
         reverse('pictures:favourites'),
     )
 
@@ -51,11 +51,11 @@ def test_logged_in_user_access_favourites_view(
 
 
 def test_user_redirects_after_posting_picture(
-    client_with_logged_in_user: Client,
+    client_logged_in: Client,
     picture_data: dict[str, int | str],
 ) -> None:
     """Tests user redirects to dashboard view afetr posting picture."""
-    response = client_with_logged_in_user.post(
+    response = client_logged_in.post(
         reverse('pictures:dashboard'),
         data=picture_data,
     )
