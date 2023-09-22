@@ -49,9 +49,9 @@ def user_data(registration_data: RegistrationData) -> UserData:
 
 @pytest.fixture()
 def registration_data_with_empty_email(
-    registration_data: RegistrationData,
+    registration_data_factory,
 ) -> RegistrationData:
     """Returns registration data with fake data, but with empty email."""
-    reg_data_with_empty_email = registration_data.copy()
-    reg_data_with_empty_email['email'] = ''
-    return reg_data_with_empty_email
+    reg_data = registration_data_factory()
+    reg_data['email'] = ''
+    return reg_data

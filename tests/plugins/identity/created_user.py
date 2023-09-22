@@ -28,9 +28,10 @@ def client_logged_in(created_new_user: User, client: Client) -> Client:
 @pytest.fixture()
 def user_with_birthdate(
     created_new_user: User,
+    random_past_date: date,
 ) -> User:
     """Returns user data with birthdate."""
     user_with_birthdate = copy(created_new_user)
-    user_with_birthdate.date_of_birth = date(1990, 1, 1)
+    user_with_birthdate.date_of_birth = random_past_date
 
     return user_with_birthdate
