@@ -20,7 +20,7 @@ def test_views(
     view: str,
     request: pytest.FixtureRequest,
 ) -> None:
-    """Test user see its views depending on auth status."""
+    """Tests if user sees its views depending on auth status."""
     client = request.getfixturevalue(client_fixture)
 
     response = client.get(view)

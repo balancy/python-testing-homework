@@ -1,9 +1,13 @@
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 from django.http import HttpResponse
 from django.test import Client
 from django.urls import reverse
+
+if TYPE_CHECKING:
+    from plugins.custom_types import RegistrationData
 
 pytestmark = [
     pytest.mark.django_db,
@@ -12,7 +16,7 @@ pytestmark = [
 
 @pytest.fixture()
 def get_update_view(client_logged_in: Client) -> HttpResponse:
-    """Gets response from user update view."""
+    """Gets response from logged in user when asking for update view."""
     return client_logged_in.get(  # type: ignore[return-value]
         reverse('identity:user_update'),
     )
@@ -21,7 +25,7 @@ def get_update_view(client_logged_in: Client) -> HttpResponse:
 @pytest.fixture()
 def post_update_view(
     client_logged_in: Client,
-    registration_data: dict[str, str],
+    registration_data: 'RegistrationData',
 ) -> HttpResponse:
     """Posts data for update to update view."""
     return client_logged_in.post(  # type: ignore[return-value]

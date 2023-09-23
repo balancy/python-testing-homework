@@ -14,10 +14,11 @@ pytestmark = [
 
 @pytest.fixture()
 def created_new_user(user_data: UserData) -> User:
-    """Creates a new user in the database."""
+    """Creates a new user in the test database."""
     return User.objects.create(**user_data)
 
 
+@pytest.mark.timeout(3)
 @pytest.fixture()
 def client_logged_in(created_new_user: User, client: Client) -> Client:
     """Returns logged in user."""
@@ -30,7 +31,7 @@ def user_with_birthdate(
     created_new_user: User,
     random_past_date: date,
 ) -> User:
-    """Returns user data with birthdate."""
+    """Returns user in database with birthdate."""
     user_with_birthdate = copy(created_new_user)
     user_with_birthdate.date_of_birth = random_past_date
 

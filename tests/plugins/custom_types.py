@@ -4,7 +4,7 @@ from typing import Protocol, TypedDict, final
 
 @final
 class UserData(TypedDict, total=False):
-    """Model for user essential data model."""
+    """Model for user essential data."""
 
     email: str
     first_name: str

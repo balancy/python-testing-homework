@@ -12,6 +12,7 @@ def registration_data_factory(fake: Field) -> RegistrationDataFactory:
     """Returns registration data with fake data."""
 
     def factory(**fields: RegistrationData) -> RegistrationData:
+        """Return factory for fake registration data."""
         password = fake('password')
 
         return RegistrationData(
@@ -33,13 +34,13 @@ def registration_data_factory(fake: Field) -> RegistrationDataFactory:
 def registration_data(
     registration_data_factory: RegistrationDataFactory,
 ) -> RegistrationData:
-    """Returns registration data with fake data."""
+    """Returns instance of registration data factory."""
     return registration_data_factory()
 
 
 @pytest.fixture()
 def user_data(registration_data: RegistrationData) -> UserData:
-    """Simplified registration data with passwords dropped out."""
+    """Returns registration data with passwords dropped out."""
     return {
         field_name: field_value
         for field_name, field_value in registration_data.items()
@@ -49,9 +50,9 @@ def user_data(registration_data: RegistrationData) -> UserData:
 
 @pytest.fixture()
 def registration_data_with_empty_email(
-    registration_data_factory,
+    registration_data_factory: RegistrationDataFactory,
 ) -> RegistrationData:
-    """Returns registration data with fake data, but with empty email."""
+    """Returns registration data, but with empty email."""
     reg_data = registration_data_factory()
     reg_data['email'] = ''
     return reg_data

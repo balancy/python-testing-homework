@@ -7,8 +7,9 @@ It may be also used for extending doctest's context:
 """
 
 import random
+from typing import cast
 
-from pytest import Config
+import pytest
 
 pytest_plugins = [
     # Should be the first custom one:
@@ -23,17 +24,25 @@ pytest_plugins = [
 ]
 
 
-def pytest_configure(config: Config) -> None:
+def pytest_configure(config: pytest.Config) -> None:
+    """Configuring seed based on the command line option.
+
+    Options:
+        default: use default random seed
+        last: use the last used random seed
+    """
     seed_value = config.getoption('randomly_seed')
     default_seed = random.Random().getrandbits(32)
 
     if seed_value == 'last':
-        seed = config.cache.get('randomly_seed', default_seed)
+        seed = cast(pytest.Cache, config.cache).get(
+            'randomly_seed',
+            default_seed,
+        )
     elif seed_value == 'default':
         seed = default_seed
     else:
         seed = seed_value
 
-    if hasattr(config, 'cache'):
-        config.cache.set('randomly_seed', seed)
+    cast(pytest.Cache, config.cache).set('randomly_seed', seed)
     config.option.randomly_seed = seed
