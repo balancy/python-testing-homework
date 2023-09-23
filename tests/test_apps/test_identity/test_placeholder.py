@@ -1,3 +1,4 @@
+import os
 from typing import TYPE_CHECKING, Generator
 
 import pytest
@@ -33,7 +34,19 @@ def test_lead_create_using_mocked_api(
 
 @pytest.mark.slow()
 @pytest.mark.timeout(10)
-@pytest.mark.parametrize('url', [PLACEHOLDER_API_URL, 'http://fakeapi:3000'])
+@pytest.mark.parametrize(
+    'url',
+    [
+        PLACEHOLDER_API_URL,
+        pytest.param(
+            'http://fakeapi:3000',
+            marks=pytest.mark.skipif(
+                os.getenv('DJANGO_ENV') == 'production',
+                reason='This test is not supposed to be run in production',
+            ),
+        ),
+    ],
+)
 def test_lead_create_using_real_api(
     user_with_birthdate: User,
     url: str,
