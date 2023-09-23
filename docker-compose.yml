@@ -59,6 +59,16 @@ services:
       retries: 5
       start_period: 30s
 
+  fakeapi:
+    build:
+      dockerfile: ./docker/json_server/Dockerfile
+    command: -H 0.0.0.0 -p 3000 -w db.json
+    ports:
+      - "3000:3000"
+    networks:
+      - webnet
+    restart: always
+
 # This task is an example of how to extend existing ones:
 #   some_worker:
 #     <<: *web
