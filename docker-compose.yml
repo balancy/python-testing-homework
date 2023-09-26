@@ -40,6 +40,7 @@ services:
       networks:
         - webnet
         - postgresnet
+        - testnet
       env_file: ./config/.env
       environment:
         DJANGO_DATABASE_HOST: db
@@ -70,6 +71,8 @@ networks:
   webnet:
   # Network for postgres, use it for services that need access to the db:
   postgresnet:
+  # Network for testing
+  testnet:
 
 volumes:
   pgdata:

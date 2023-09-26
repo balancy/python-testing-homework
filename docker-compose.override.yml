@@ -14,11 +14,11 @@ services:
   fakeapi:
     build:
       dockerfile: ./docker/json_server/Dockerfile
-    command: -H 0.0.0.0 -p 3000 -w db.json
+    command: -H 0.0.0.0 -p 3000 db.json
     ports:
       - "3000:3000"
     networks:
-      - webnet
+      - testnet
 
   web:
     ports:
