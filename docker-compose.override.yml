@@ -11,6 +11,14 @@
 
 version: "3.8"
 services:
+  fakeapi:
+    build:
+      dockerfile: ./docker/json_server/Dockerfile
+    command: -H 0.0.0.0 -p 3000 db.json
+    ports:
+      - "3000:3000"
+    networks:
+      - testnet
 
   web:
     ports:
@@ -24,7 +32,3 @@ services:
       args:
         - UID=${UID:-1000}
         - GID=${GID:-1000}
-
-networks:
-  # Fake API network:
-  bitrixnet:

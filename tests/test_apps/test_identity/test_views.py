@@ -11,7 +11,7 @@ pytestmark = [
 @pytest.mark.parametrize(
     ('client_fixture', 'view'),
     [
-        ('client_with_logged_in_user', reverse('index')),
+        ('client_logged_in', reverse('index')),
         ('client', reverse('identity:login')),
     ],
 )
@@ -20,7 +20,7 @@ def test_views(
     view: str,
     request: pytest.FixtureRequest,
 ) -> None:
-    """Test user see its views depending on auth status."""
+    """Tests if user sees its views depending on auth status."""
     client = request.getfixturevalue(client_fixture)
 
     response = client.get(view)

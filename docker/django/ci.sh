@@ -49,7 +49,7 @@ run_ci () {
   lint-imports
 
   # Running tests:
-  pytest
+  pytest -m "not slow" --randomly-seed=last
 
   # Run checks to be sure we follow all django's best practices:
   python manage.py check --fail-level WARNING

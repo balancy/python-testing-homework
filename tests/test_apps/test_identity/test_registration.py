@@ -25,10 +25,12 @@ def test_registration(
     request: pytest.FixtureRequest,
 ) -> None:
     """Tests if registration works correctly depending on user data."""
-    registration_view: str = reverse('identity:registration')
     registration_data = request.getfixturevalue(registration_data_fixture)
 
-    response = client.post(registration_view, data=registration_data)
+    response = client.post(
+        reverse('identity:registration'),
+        data=registration_data,
+    )
 
     assert response.status_code == status_code
 

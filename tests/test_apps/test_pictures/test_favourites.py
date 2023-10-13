@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from typing import TYPE_CHECKING
 
 import pytest
 from django.test import Client
@@ -7,6 +8,9 @@ from django.urls import reverse
 from server.apps.identity.models import User
 from server.apps.pictures.logic.usecases.favourites_list import FavouritesList
 from server.apps.pictures.models import FavouritePicture
+
+if TYPE_CHECKING:
+    from plugins.custom_types import FavouritePictureData
 
 pytestmark = [
     pytest.mark.django_db(),
@@ -17,7 +21,7 @@ def test_fetch_favourite_picture_if_exists(
     created_new_user: User,
     created_fav_picture: FavouritePicture,
 ) -> None:
-    """Tests getting correct favourite pictures."""
+    """Tests user gets correct favourite pictures via FavouritesList."""
     user_fav_pictures = FavouritesList()(user_id=created_new_user.id)
 
     assert len(user_fav_pictures) == 1
@@ -25,10 +29,10 @@ def test_fetch_favourite_picture_if_exists(
 
 
 def test_logged_in_user_access_dashboard_view(
-    client_with_logged_in_user: Client,
+    client_logged_in: Client,
 ) -> None:
-    """Tests that logged in user can access dashboard view."""
-    response = client_with_logged_in_user.get(
+    """Tests logged in user can access dashboard view."""
+    response = client_logged_in.get(
         reverse('pictures:dashboard'),
     )
 
@@ -37,11 +41,11 @@ def test_logged_in_user_access_dashboard_view(
 
 
 def test_logged_in_user_access_favourites_view(
-    client_with_logged_in_user: Client,
+    client_logged_in: Client,
     created_fav_picture: FavouritePicture,
 ) -> None:
-    """Tests that logged in user can access favourites view."""
-    response = client_with_logged_in_user.get(
+    """Tests logged in user can access favourites view."""
+    response = client_logged_in.get(
         reverse('pictures:favourites'),
     )
 
@@ -51,11 +55,11 @@ def test_logged_in_user_access_favourites_view(
 
 
 def test_user_redirects_after_posting_picture(
-    client_with_logged_in_user: Client,
-    picture_data: dict[str, int | str],
+    client_logged_in: Client,
+    picture_data: 'FavouritePictureData',
 ) -> None:
-    """Tests user redirects to dashboard view afetr posting picture."""
-    response = client_with_logged_in_user.post(
+    """Tests user redirects to dashboard view after posting picture."""
+    response = client_logged_in.post(
         reverse('pictures:dashboard'),
         data=picture_data,
     )

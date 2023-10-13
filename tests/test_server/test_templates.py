@@ -12,12 +12,12 @@ pytestmark = [
 
 @pytest.fixture()
 def index_request() -> WSGIRequest:
-    """Return request to index page."""
+    """Returns request to index page."""
     return RequestFactory().get(reverse('index'))
 
 
 def test_base_template(index_request: WSGIRequest) -> None:
-    """Test base template."""
+    """Tests base template."""
     template_name: str = 'common/_base.html'
 
     page: HttpResponse = render(index_request, template_name)
@@ -25,8 +25,9 @@ def test_base_template(index_request: WSGIRequest) -> None:
     assert isinstance(page, HttpResponse)
 
 
+@pytest.mark.timeout(3)
 def test_messages_template(index_request: WSGIRequest) -> None:
-    """Test messages template."""
+    """Tests messages template."""
     template_name: str = 'common/includes/messages.html'
 
     page = render(
