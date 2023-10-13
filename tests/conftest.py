@@ -6,10 +6,6 @@ It may be also used for extending doctest's context:
 2. https://docs.pytest.org/en/latest/doctest.html
 """
 
-import random
-from typing import cast
-
-import pytest
 
 pytest_plugins = [
     # Should be the first custom one:
